@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Backend Service (FastAPI)
+  backend:
+    build: ./backend
+    container_name: chatbot-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the local db folder to persist the vector database
+      - ./backend/db:/app/db
+      # Mount the local pdf_data folder
+      - ./backend/pdf_data:/app/pdf_data
+    env_file:
+      - ./backend/.env
+
+  # Frontend Service (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: chatbot-frontend
+    ports:
+      - "3000:3000"
+    # This ensures the frontend waits for the backend to be ready
+    depends_on:
+      - backend
+    # We need to pass the backend URL to the frontend as an environment variable
+    environment:
+      # This tells the Next.js app where to find the backend API
+      # 'backend' is the service name defined above, Docker's internal DNS handles it
+      NEXT_PUBLIC_API_URL: http://backend:8000
