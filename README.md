@@ -45,29 +45,8 @@ This approach is ideal for applications requiring domain-specific knowledge, suc
 ## **🏗️ Project Architecture**
 
 The application is divided into two main components: a backend server that handles the AI logic and a frontend client for user interaction, orchestrated by Docker Compose.  
-+----------------------------+        +-----------------------------+
-|     Frontend (Next.js)     |        |       Backend (FastAPI)     |
-|----------------------------|        |-----------------------------|
-| - Chat UI (React + TS)     |        | - /chat API endpoint        |
-| - Calls backend API        | <----> | - RAG pipeline              |
-+----------------------------+        | - PDF processing & chunking |
-                                      +-------------+---------------+
-                                                    |
-                                                    v
-                                     +-----------------------------+
-                                     |  Vector DB (ChromaDB)       |
-                                     |-----------------------------|
-                                     | - Stores embeddings         |
-                                     | - Similarity search         |
-                                     +-------------+---------------+
-                                                   |
-                                                   v
-                                     +-----------------------------+
-                                     |    Google AI Platform       |
-                                     |-----------------------------|
-                                     | - Gemini 1.5 Pro (LLM)      |
-                                     | - text-embedding-004        |
-                                     +-----------------------------+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/c64fe7fb-9e78-4abf-b092-b5eea7948f4c" />
+
 
 **Workflow:**
 
