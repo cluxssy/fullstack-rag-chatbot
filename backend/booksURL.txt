@@ -1,0 +1,3 @@
+https://www.cs.cmu.edu/~tom/files/MachineLearningTomMitchell.pdf
+https://alex.smola.org/drafts/thebook.pdf
+https://mml-book.github.io/book/mml-book.pdf

@@ -1,0 +1,599 @@
+icial Intelligence in Medicine, (to appear). 
+Fayyad, U. M., Uthurusamy, R. (Eds.) (1995). Proceedings of the First International Conference on 
+Knowledge Discovery and Data Mining. Menlo Park, CA: AAAI Press. 
+Fayyad, U. M., Smyth, P., Weir, N., Djorgovski, S. (1995). Automated analysis and exploration of 
+image databases: Results, progress, and challenges. Journal of Intelligent Information Systems, 
+4, 1-19. 
+Laird, J., Rosenbloom, P., & Newell, A. (1986). SOAR: The anatomy of a general learning mecha- 
+nism. Machine Learning, 1(1), 1146. 
+Langley, P., & Simon, H. (1995). Applications of machine learning and rule induction. Communica- 
+tions of the ACM, 38(1 I), 55-64. 
+Lee, K. (1989). Automatic speech recognition: The development of the Sphinx system. Boston: Kluwer 
+Academic Publishers. 
+Pomerleau, D. A. (1989). ALVINN: An autonomous land vehicle in a neural network. (Technical 
+Report CMU-CS-89-107). Pittsburgh, PA: Carnegie Mellon University.ý
+models/text-embedding-004Ý
+Ú×Report CMU-CS-89-107). Pittsburgh, PA: Carnegie Mellon University. 
+Qin, Y., Mitchell, T., & Simon, H. (1992). Using EBG to simulate human learning from examples 
+and learning by doing. Proceedings of the Florida AI Research Symposium (pp. 235-239). 
+Rudnicky, A. I., Hauptmann, A. G., & Lee, K. -F. (1994). Survey of current speech technology in 
+artificial intelligence. Communications of the ACM, 37(3), 52-57. 
+Rumelhart, D., Widrow, B., & Lehr, M. (1994). The basic ideas in neural networks. Communications 
+of the ACM, 37(3), 87-92. 
+Tesauro, G. (1992). Practical issues in temporal difference learning. Machine Learning, 8, 257. 
+Tesauro, G. (1995). Temporal difference learning and TD-gammon. Communications of the ACM, 
+38(3), 5848. 
+Waibel, A,, Hanazawa, T., Hinton, G., Shikano, K., & Lang, K. (1989). Phoneme recognition using 
+time-delay neural networks. IEEE Transactions on Acoustics, Speech and Signal Processing, 
+37(3), 328-339.  CHAPTER 
+CONCEPT 
+LEARNING 
+AND THE‡
+models/text-embedding-004ç
+äá37(3), 328-339.  CHAPTER 
+CONCEPT 
+LEARNING 
+AND THE 
+GENERAL-TO-SPECIFIC 
+0,RDERING 
+The problem of inducing general functions from specific training examples is central 
+to learning. This chapter considers concept learning: acquiring the definition of a 
+general category given a sample of positive and negative training examples of the 
+category. Concept learning can be formulated as a problem of searching through a 
+predefined space of potential hypotheses for the hypothesis that best fits the train- 
+ing examples. In many cases this search can be efficiently organized by taking 
+advantage of a naturally occurring structure over the hypothesis space-a general- 
+to-specific ordering of hypotheses. This chapter presents several learning algorithms 
+and considers situations under which they converge to the correct hypothesis. We 
+also examine the nature of inductive learning and the justification by which any 
+program may successfully generalize beyond the observed training data.Ô
+models/text-embedding-004´
+±®program may successfully generalize beyond the observed training data. 
+2.1 INTRODUCTION 
+Much of learning involves acquiring general concepts from specific training exam- 
+ples. People, for example, continually learn general concepts or categories such 
+as "bird," "car," "situations in which I should study more in order to pass the 
+exam," etc. Each such concept can be viewed as describing some subset of ob- 
+jects or events defined over a larger set (e.g., the subset of animals that constitute  CHAFER 2 CONCEm LEARNING AND THE GENERAL-TO-SPECIFIC ORDERWG 21 
+birds). Alternatively, each concept can be thought of as a boolean-valued function 
+defined over this larger set (e.g., a function defined over all animals, whose value 
+is true for birds and false for other animals). 
+In this chapter we consider the problem of automatically inferring the general 
+definition of some concept, given examples labeled as+.members or nonmembersú
+models/text-embedding-004Ú
+×Ôdefinition of some concept, given examples labeled as+.members or nonmembers 
+of the concept. This task is commonly referred to as concept learning, or approx- 
+imating a boolean-valued function from examples. 
+Concept learning. Inferring a boolean-valued function from training examples of 
+its input and output. 
+2.2 A CONCEPT LEARNING TASK 
+To ground our discussion of concept learning, consider the example task of learn- 
+ing the target concept "days on which my friend Aldo enjoys his favorite water 
+sport." Table 2.1 describes a set of example days, each represented by a set of 
+attributes. The attribute EnjoySport indicates whether or not Aldo enjoys his 
+favorite water sport on this day. The task is to learn to predict the value of 
+EnjoySport for an arbitrary day, based on the values of its other attributes. 
+What hypothesis representation shall we provide to the learner in this case? 
+Let us begin by considering a simple representation in which each hypothesis…
+models/text-embedding-004å
+âßLet us begin by considering a simple representation in which each hypothesis 
+consists of a conjunction of constraints on the instance attributes. In particular, 
+let each hypothesis be a vector of six constraints, specifying the values of the six 
+attributes Sky, AirTemp, Humidity, Wind, Water, and Forecast. For each attribute, 
+the hypothesis will either 
+0 indicate by a "?' that any value is acceptable for this attribute, 
+0 specify a single required value (e.g., Warm) for the attribute, or 
+0 indicate by a "0" that no value is acceptable. 
+If some instance x satisfies all the constraints of hypothesis h, then h clas- 
+sifies x as a positive example (h(x) = 1). To illustrate, the hypothesis that Aldo 
+enjoys his favorite sport only on cold days with high humidity (independent of 
+the values of the other attributes) is represented by the expression 
+(?, Cold, High, ?, ?, ?) 
+Example Sky AirTemp Humidity Wind Water Forecast EnjoySport 
+1 Sunny Warm Normal Strong Warm Same Yes÷
+models/text-embedding-004×
+ÔÑ1 Sunny Warm Normal Strong Warm Same Yes 
+2 Sunny Warm High Strong Warm Same Yes 
+3 Rainy Cold High Strong Warm Change No 
+4 Sunny Warm High Strong Cool Change Yes 
+TABLE 2.1 
+Positive and negative training examples for the target concept EnjoySport.  22 MACHINE LEARNING 
+The most general hypothesis-that every day is a positive example-is repre- 
+sented by 
+(?, ?, ?, ?, ?, ?) 
+and the most specific possible hypothesis-that no day is a positive example-is 
+represented by 
+(0,0,0,0,0,0) 
+To summarize, the EnjoySport concept learning task requires learning the 
+set of days for which EnjoySport = yes, describing this set by a conjunction 
+of constraints over the instance attributes. In general, any concept learning task 
+can be described by the set of instances over which the target function is defined, 
+the target function, the set of candidate hypotheses considered by the learner, and 
+the set of available training examples. The definition of the EnjoySport conceptà
+models/text-embedding-004À
+½ºthe set of available training examples. The definition of the EnjoySport concept 
+learning task in this general form is given in Table 2.2. 
+2.2.1 Notation 
+Throughout this book, we employ the following terminology when discussing 
+concept learning problems. The set of items over which the concept is defined 
+is called the set of instances, which we denote by X. In the current example, X 
+is the set of all possible days, each represented by the attributes Sky, AirTemp, 
+Humidity, Wind, Water, and Forecast. The concept or function to be learned is 
+called the target concept, which we denote by c. In general, c can be any boolean- 
+valued function defined over the instances X; that is, c : X + {O, 1). In the current 
+example, the target concept corresponds to the value of the attribute EnjoySport 
+(i.e., c(x) = 1 if EnjoySport = Yes, and c(x) = 0 if EnjoySport = No). 
+- 
+0 Given: 
+0 Instances X: Possible days, each described by the attributesÍ
+models/text-embedding-004­
+ª§- 
+0 Given: 
+0 Instances X: Possible days, each described by the attributes 
+0 Sky (with possible values Sunny, Cloudy, and Rainy), 
+0 AirTemp (with values Warm and Cold), 
+0 Humidity (with values Normal and High), 
+0 Wind (with values Strong and Weak), 
+0 Water (with values Warm and Cool), and 
+0 Forecast (with values Same and Change). 
+0 Hypotheses H: Each hypothesis is described by a conjunction of constraints on the at- 
+tributes Sky, AirTemp, Humidity, Wind, Water, and Forecast. The constraints may be "?" 
+(any value is acceptable), "0 (no value is acceptable), or a specific value. 
+0 Target concept c: EnjoySport : X + (0,l) 
+0 Training examples D: Positive and negative examples of the target function (see Table 2.1). 
+0 Determine: 
+0 A hypothesis h in H such that h(x) = c(x) for all x in X. 
+TABLE 2.2 
+The EnjoySport concept learning task.  When learning the target concept, the learner is presented a set of trainingÙ
+models/text-embedding-004¹
+¶³examples, each consisting of an instance x from X, along with its target concept 
+value c(x) (e.g., the training examples in Table 2.1). Instances for which c(x) = 1 
+are called positive examples, or members of the target concept. Instances for which 
+C(X) = 0 are called negative examples, or nonmembers of the target concept. 
+We will often write the ordered pair (x, c(x)) to describe the training example 
+consisting of the instance x and its target concept value c(x). We use the symbol 
+D to denote the set of available training examples. 
+Given a set of training examples of the target concept c, the problem faced 
+by the learner is to hypothesize, or estimate, c. We use the symbol H to denote 
+the set of all possible hypotheses that the learner may consider regarding the 
+identity of the target concept. Usually H is determined by the human designer's 
+choice of hypothesis representation. In general, each hypothesis h in H representsÏ
+models/text-embedding-004¯
+¬©choice of hypothesis representation. In general, each hypothesis h in H represents 
+a boolean-valued function defined over X; that is, h : X --+ {O, 1). The goal of the 
+learner is to find a hypothesis h such that h(x) = c(x) for a" x in X. 
+2.2.2 The Inductive Learning Hypothesis 
+Notice that although the learning task is to determine a hypothesis h identical 
+to the target concept c over the entire set of instances X, the only information 
+available about c is its value over the training examples. Therefore, inductive 
+learning algorithms can at best guarantee that the output hypothesis fits the target 
+concept over the training data. Lacking any further information, our assumption 
+is that the best hypothesis regarding unseen instances is the hypothesis that best 
+fits the observed training data. This is the fundamental assumption of inductive 
+learning, and we will have much more to say about it throughout this book. Weò
+models/text-embedding-004Ò
+ÏÌlearning, and we will have much more to say about it throughout this book. We 
+state it here informally and will revisit and analyze this assumption more formally 
+and more quantitatively in Chapters 5, 6, and 7. 
+The inductive learning hypothesis. Any hypothesis found to approximate the target 
+function well over a sufficiently large set of training examples will also approximate 
+the target function well over other unobserved examples. 
+2.3 CONCEPT LEARNING AS SEARCH 
+Concept learning can be viewed as the task of searching through a large space of 
+hypotheses implicitly defined by the hypothesis representation. The goal of this 
+search is to find the hypothesis that best fits the training examples. It is important 
+to note that by selecting a hypothesis representation, the designer of the learning 
+algorithm implicitly defines the space of all hypotheses that the program can 
+ever represent and therefore can ever learn. Consider, for example, the instancesÂ
+models/text-embedding-004¢
+Ÿœever represent and therefore can ever learn. Consider, for example, the instances 
+X and hypotheses H in the EnjoySport learning task. Given that the attribute 
+Sky has three possible values, and that AirTemp, Humidity, Wind, Water, and 
+Forecast each have two possible values, the instance space X contains exactly  3 .2 2 .2 2 .2 = 96 distinct instances. A similar calculation shows that there are 
+5.4-4 -4 -4.4 = 5 120 syntactically distinct hypotheses within H. Notice, however, 
+that every hypothesis containing one or more "IZI" symbols represents the empty 
+set of instances; that is, it classifies every instance as negative. Therefore, the 
+number of semantically distinct hypotheses is only 1 + (4.3.3.3.3.3) = 973. Our 
+EnjoySport example is a very simple learning task, with a relatively small, finite 
+hypothesis space. Most practical learning tasks involve much larger, sometimes 
+infinite, hypothesis spaces.‡
+models/text-embedding-004ç
+äáinfinite, hypothesis spaces. 
+If we view learning as a search problem, then it is natural that our study 
+of learning algorithms will exa~the different strategies for searching the hypoth- 
+esis space. We will be particula ly interested in algorithms capable of efficiently 
+searching very large or infinite hypothesis spaces, to find the hypotheses that best 
+fit the training data. 
+2.3.1 General-to-Specific Ordering of Hypotheses 
+Many algorithms for concept learning organize the search through the hypothesis 
+space by relying on a very useful structure that exists for any concept learning 
+problem: a general-to-specific ordering of hypotheses. By taking advantage of this 
+naturally occurring structure over the hypothesis space, we can design learning 
+algorithms that exhaustively search even infinite hypothesis spaces without explic- 
+itly enumerating every hypothesis. To illustrate the general-to-specific ordering, 
+consider the two hypotheses 
+hi = (Sunny, ?, ?, Strong, ?, ?)î
+models/text-embedding-004Î
+ËÈconsider the two hypotheses 
+hi = (Sunny, ?, ?, Strong, ?, ?) 
+h2 = (Sunny, ?, ?, ?, ?, ?) 
+Now consider the sets of instances that are classified positive by hl and by h2. 
+Because h2 imposes fewer constraints on the instance, it classifies more instances 
+as positive. In fact, any instance classified positive by hl will also be classified 
+positive by h2. Therefore, we say that h2 is more general than hl. 
+This intuitive "more general than" relationship between hypotheses can be 
+defined more precisely as follows. First, for any instance x in X and hypothesis 
+h in H, we say that x satisjies h if and only if h(x) = 1. We now define the 
+more-general~han_or.-equal~o relation in terms of the sets of instances that sat- 
+isfy the two hypotheses: Given hypotheses hj and hk, hj is more-general-thanm-- 
+equaldo hk if and only if any instance that satisfies hk also satisfies hi. 
+Definition: Let hj and hk be boolean-valued functions defined over X. Then hj isÚ
+models/text-embedding-004º
+·´Definition: Let hj and hk be boolean-valued functions defined over X. Then hj is 
+moregeneral-than-or-equal-to hk (written hj 2, hk) if and only if 
+We will also find it useful to consider cases where one hypothesis is strictly more 
+general than the other. Therefore, we will say that hj is (strictly) more-generaldhan  CHAPTER 2 CONCEPT LEARNING AND THE GENERAL-TO-SPECIFIC ORDERING 25 
+Imtances X Hypotheses H 
+I I 
+A Specific 
+General 
+t 
+i 
+XI= <Sunny, Wan, High, Strong, Cool, Same> hl= <Sunny, ?, ?, Strong, ?, ?> 
+x = <Sunny, Warm, High, Light, Warm, Same> 
+2 
+h = <Sunny, ?, ?, ?, ?, ?> 
+2 
+h 3 = <Sunny, ?, ?, 7, Cool, ?> 
+FIGURE 2.1 
+Instances, hypotheses, and the more-general-than relation. The box on the left represents the set X 
+of all instances, the box on the right the set H of all hypotheses. Each hypothesis corresponds to 
+some subset of X-the subset of instances that it classifies positive. The arrows connecting hypothesesù
+models/text-embedding-004Ù
+ÖÓrepresent the more-general-than relation, with the arrow pointing toward the less general hypothesis. 
+Note the subset of instances characterized by h2 subsumes the subset characterized by hl, hence h2 
+is more-general-than hl. 
+hk (written hj >, hk) if and only if (hj p, hk) A (hk 2, hi). Finally, we will 
+sometimes find the inverse useful and will say that hj is morespecijkthan hk 
+when hk is more_general-than hj. 
+To illustrate these definitions, consider the three hypotheses hl, h2, and 
+h3 from our Enjoysport example, shown in Figure 2.1. How are these three 
+hypotheses related by the p, relation? As noted earlier, hypothesis h2 is more 
+general than hl because every instance that satisfies hl also satisfies h2. Simi- 
+larly, h2 is more general than h3. Note that neither hl nor h3 is more general 
+than the other; although the instances satisfied by these two hypotheses intersect, 
+neither set subsumes the other. Notice also that the p, and >, relations are de-‰
+models/text-embedding-004é
+æãneither set subsumes the other. Notice also that the p, and >, relations are de- 
+fined independent of the target concept. They depend only on which instances 
+satisfy the two hypotheses and not on the classification of those instances accord- 
+ing to the target concept. Formally, the p, relation defines a partial order over 
+the hypothesis space H (the relation is reflexive, antisymmetric, and transitive). 
+Informally, when we say the structure is a partial (as opposed to total) order, we 
+mean there may be pairs of hypotheses such as hl and h3, such that hl 2, h3 and 
+h3 2, hl. 
+The pg relation is important because it provides a useful structure over the 
+hypothesis space H for any concept learning problem. The following sections 
+present concept learning algorithms that take advantage of this partial order to 
+efficiently organize the search for hypotheses that fit the training data.  1. Initialize h to the most specific hypothesis in H 
+2. For each positive training instance xÎ
+models/text-embedding-004®
+«¨2. For each positive training instance x 
+0 For each attribute constraint a, in h 
+If the constraint a, is satisfied by x 
+Then do nothing 
+Else replace a, in h by the next more general constraint that is satisfied by x 
+3. Output hypothesis h 
+TABLE 2.3 
+FIND-S Algorithm. 
+2.4 FIND-S: FINDING A MAXIMALLY SPECIFIC HYPOTHESIS 
+How can we use the more-general-than partial ordering to organize the search for 
+a hypothesis consistent with the observed training examples? One way is to begin 
+with the most specific possible hypothesis in H, then generalize this hypothesis 
+each time it fails to cover an observed positive training example. (We say that 
+a hypothesis "covers" a positive example if it correctly classifies the example as 
+positive.) To be more precise about how the partial ordering is used, consider the 
+FIND-S algorithm defined in Table 2.3. 
+To illustrate this algorithm, assume the learner is given the sequence ofõ
+models/text-embedding-004Õ
+ÒÏTo illustrate this algorithm, assume the learner is given the sequence of 
+training examples from Table 2.1 for the EnjoySport task. The first step of FIND- 
+S is to initialize h to the most specific hypothesis in H 
+Upon observing the first training example from Table 2.1, which happens to be a 
+positive example, it becomes clear that our hypothesis is too specific. In particular, 
+none of the "0" constraints in h are satisfied by this example, so each is replaced 
+by the next more general constraint {hat fits the example; namely, the attribute 
+values for this training example. 
+h -+ (Sunny, Warm, Normal, Strong, Warm, Same) 
+This h is still very specific; it asserts that all instances are negative except for 
+the single positive training example we have observed. Next, the second training 
+example (also positive in this case) forces the algorithm to further generalize h, 
+this time substituting a "?' in place of any attribute value in h that is not satisfiedÍ
+models/text-embedding-004­
+ª§this time substituting a "?' in place of any attribute value in h that is not satisfied 
+by the new example. The refined hypothesis in this case is 
+h -+ (Sunny, Warm, ?, Strong, Warm, Same) 
+Upon encountering the third training example-in this case a negative exam- 
+ple-the algorithm makes no change to h. In fact, the FIND-S algorithm simply 
+ignores every negative example! While this may at first seem strange, notice that 
+in the current case our hypothesis h is already consistent with the new negative ex- 
+ample (i-e., h correctly classifies this example as negative), and hence no revision  is needed. In the general case, as long as we assume that the hypothesis space H 
+contains a hypothesis that describes the true target concept c and that the training 
+data contains no errors, then the current hypothesis h can never require a revision 
+in response to a negative example. To see why, recall that the current hypothesisƒ
+models/text-embedding-004ã
+àÝin response to a negative example. To see why, recall that the current hypothesis 
+h is the most specific hypothesis in H consistent with the observed positive exam- 
+ples. Because the target concept c is also assumed to be in H and to be consistent 
+with the positive training examples, c must be more.general_than-or-equaldo h. 
+But the target concept c will never cover a negative example, thus neither will 
+h (by the definition of more-general~han). Therefore, no revision to h will be 
+required in response to any negative example. 
+To complete our trace of FIND-S, the fourth (positive) example leads to a 
+further generalization of h 
+h t (Sunny, Warm, ?, Strong, ?, ?) 
+The FIND-S algorithm illustrates one way in which the more-generaldhan 
+partial ordering can be used to organize the search for an acceptable hypothe- 
+sis. The search moves from hypothesis to hypothesis, searching from the most 
+specific to progressively more general hypotheses along one chain of the partialõ
+models/text-embedding-004Õ
+ÒÏspecific to progressively more general hypotheses along one chain of the partial 
+ordering. Figure 2.2 illustrates this search in terms of the instance and hypoth- 
+esis spaces. At each step, the hypothesis is generalized only as far as neces- 
+sary to cover the new positive example. Therefore, at each stage the hypothesis 
+is the most specific hypothesis consistent with the training examples observed 
+up to this point (hence the name FIND-S). The literature on concept learning is 
+Instances X Hypotheses H 
+specific 
+General 
+* 1 = <Sunny Warm Normal Strong Warm Same>, + h, = <Sunny Warm Normal Strong Warm Same> 
+x2 = <Sunny Warm High Strong Warm Same>, + h2 = <Sunny Warm ? Strong Warm Same> 
+X3 = <Rainy Cold High Strong Warm Change>, - h = <Sunny Warm ? Strong Warm Same> 3 
+x - <Sunny Warm High Strong Cool Change>, + h - <Sunny Warm ? Strong ? ? > 4- 4 - 
+FIGURE 2.2 
+'The hypothesis space search performed by FINDS. The search begins (ho) with the most specificú
+models/text-embedding-004Ú
+×Ô'The hypothesis space search performed by FINDS. The search begins (ho) with the most specific 
+hypothesis in H, then considers increasingly general hypotheses (hl through h4) as mandated by the 
+training examples. In the instance space diagram, positive training examples are denoted by "+," 
+negative by "-," and instances that have not been presented as training examples are denoted by a 
+solid circle.  populated by many different algorithms that utilize this same more-general-than 
+partial ordering to organize the search in one fashion or another. A number of 
+such algorithms are discussed in this chapter, and several others are presented in 
+Chapter 10. 
+The key property of the FIND-S algorithm is that for hypothesis spaces de- 
+scribed by conjunctions of attribute constraints (such as H for the EnjoySport 
+task), FIND-S is guaranteed to output the most specific hypothesis within H 
+that is consistent with the positive training examples. Its final hypothesis willÌ
+models/text-embedding-004¬
+©¦that is consistent with the positive training examples. Its final hypothesis will 
+also be consistent with the negative examples provided the correct target con- 
+cept is contained in H, and provided the training examples are correct. How- 
+ever, there are several questions still left unanswered by this learning algorithm, 
+such as: 
+Has the learner converged to the correct target concept? Although FIND-S 
+will find a hypothesis consistent with the training data, it has no way to 
+determine whether it has found the only hypothesis in H consistent with 
+the data (i.e., the correct target concept), or whether there are many other 
+consistent hypotheses as well. We would prefer a learning algorithm that 
+could determine whether it had converged and, if not, at least characterize 
+its uncertainty regarding the true identity of the target concept. 
+0 Why prefer the most specific hypothesis? In case there are multiple hypothe-è
+models/text-embedding-004È
+ÅÂ0 Why prefer the most specific hypothesis? In case there are multiple hypothe- 
+ses consistent with the training examples, FIND-S will find the most specific. 
+It is unclear whether we should prefer this hypothesis over, say, the most 
+general, or some other hypothesis of intermediate generality. 
+0 Are the training examples consistent? In most practical learning problems 
+there is some chance that the training examples will contain at least some 
+errors or noise. Such inconsistent sets of training examples can severely 
+mislead FIND-S, given the fact that it ignores negative examples. We would 
+prefer an algorithm that could at least detect when the training data is in- 
+consistent and, preferably, accommodate such errors. 
+0 What if there are several maximally specific consistent hypotheses? In the 
+hypothesis language H for the EnjoySport task, there is always a unique, 
+most specific hypothesis consistent with any set of positive examples. How-ï
+models/text-embedding-004Ï
+ÌÉmost specific hypothesis consistent with any set of positive examples. How- 
+ever, for other hypothesis spaces (discussed later) there can be several maxi- 
+mally specific hypotheses consistent with the data. In this case, FIND-S must 
+be extended to allow it to backtrack on its choices of how to generalize the 
+hypothesis, to accommodate the possibility that the target concept lies along 
+a different branch of the partial ordering than the branch it has selected. Fur- 
+thermore, we can define hypothesis spaces for which there is no maximally 
+specific consistent hypothesis, although this is more of a theoretical issue 
+than a practical one (see Exercise 2.7).  2.5 VERSION SPACES AND THE CANDIDATE-ELIMINATION 
+ALGORITHM 
+This section describes a second approach to concept learning, the CANDIDATE- 
+ELIMINATION algorithm, that addresses several of the limitations of FIND-S. Notice 
+that although FIND-S outputs a hypothesis from H,that is consistent with theó
+models/text-embedding-004Ó
+ÐÍthat although FIND-S outputs a hypothesis from H,that is consistent with the 
+training examples, this is just one of many hypotheses from H that might fit the 
+training data equally well. The key idea in the CANDIDATE-ELIMINATION algorithm 
+is to output a description of the set of all hypotheses consistent with the train- 
+ing examples. Surprisingly, the CANDIDATE-ELIMINATION algorithm computes the 
+description of this set without explicitly enumerating all of its members. This is 
+accomplished by again using the more-general-than partial ordering, this time 
+to maintain a compact representation of the set of consistent hypotheses and to 
+incrementally refine this representation as each new training example is encoun- 
+tered. 
+The CANDIDATE-ELIMINATION algorithm has been applied to problems such 
+as learning regularities in chemical mass spectroscopy (Mitchell 1979) and learn- 
+ing control rules for heuristic search (Mitchell et al. 1983). Nevertheless, prac-Œ
+models/text-embedding-004ì
+éæing control rules for heuristic search (Mitchell et al. 1983). Nevertheless, prac- 
+tical applications of the CANDIDATE-ELIMINATION and FIND-S algorithms are lim- 
+ited by the fact that they both perform poorly when given noisy training data. 
+More importantly for our purposes here, the CANDIDATE-ELIMINATION algorithm 
+provides a useful conceptual framework for introducing several fundamental is- 
+sues in machine learning. In the remainder of this chapter we present the algo- 
+rithm and discuss these issues. Beginning with the next chapter, we will ex- 
+amine learning algorithms that are used more frequently with noisy training 
+data. 
+2.5.1 Representation 
+The CANDIDATE-ELIMINATION algorithm finds all describable hypotheses that are 
+consistent with the observed training examples. In order to define this algorithm 
+precisely, we begin with a few basic definitions. First, let us say that a hypothesis 
+is consistent with the training examples if it correctly classifies these examples.ˆ
+models/text-embedding-004è
+åâis consistent with the training examples if it correctly classifies these examples. 
+Definition: A hypothesis h is consistent with a set of training examples D if and 
+only if h(x) = c(x) for each example (x, c(x)) in D. 
+Notice the key difference between this definition of consistent and our earlier 
+definition of satisfies. An example x is said to satisfy hypothesis h when h(x) = 1, 
+regardless of whether x is a positive or negative example of the target concept. 
+However, whether such an example is consistent with h depends on the target 
+concept, and in particular, whether h(x) = c(x). 
+The CANDIDATE-ELIMINATION algorithm represents the set of all hypotheses 
+consistent with the observed training examples. This subset of all hypotheses is  called the version space with respect to the hypothesis space H and the training 
+examples D, because it contains all plausible versions of the target concept. 
+Dejnition: The version space, denoted VSHVD, with respect to hypothesis space Hä
+models/text-embedding-004Ä
+Á¾Dejnition: The version space, denoted VSHVD, with respect to hypothesis space H 
+and training examples D, is the subset of hypotheses from H consistent with the 
+training examples in D. 
+VSH,~ = {h E HIConsistent(h, D)] 
+2.5.2 The LIST-THEN-ELIMINATE Algorithm 
+One obvious way to represent the version space is simply to list all of its members. 
+This leads to a simple learning algorithm, which we might call the LIST-THEN- 
+ELIMINATE algorithm, defined in Table 2.4. 
+The LIST-THEN-ELIMINATE algorithm first initializes the version space to con- 
+tain all hypotheses in H, then eliminates any hypothesis found inconsistent with 
+any training example. The version space of candidate hypotheses thus shrinks 
+as more examples are observed, until ideally just one hypothesis remains that is 
+consistent with all the observed examples. This, presumably, is the desired target 
+concept. If insufficient data is available to narrow the version space to a singleÚ
+models/text-embedding-004º
+·´concept. If insufficient data is available to narrow the version space to a single 
+hypothesis, then the algorithm can output the entire set of hypotheses consistent 
+with the observed data. 
+In principle, the LIST-THEN-ELIMINATE algorithm can be applied whenever 
+the hypothesis space H is finite. It has many advantages, including the fact that it 
+is guaranteed to output all hypotheses consistent with the training data. Unfortu- 
+nately, it requires exhaustively enumerating all hypotheses in H-an unrealistic 
+requirement for all but the most trivial hypothesis spaces. 
+2.5.3 A More Compact Representation for Version Spaces 
+The CANDIDATE-ELIMINATION algorithm works on the same principle as the above 
+LIST-THEN-ELIMINATE algorithm. However, it employs a much more compact rep- 
+resentation of the version space. In particular, the version space is represented 
+by its most general and least general members. These members form general andß
+models/text-embedding-004¿
+¼¹by its most general and least general members. These members form general and 
+specific boundary sets that delimit the version space within the partially ordered 
+hypothesis space. 
+The LIST-THEN-ELIMINATE Algorithm 
+1. VersionSpace c a list containing every hypothesis in H 
+2. For each training example, (x, c(x)) 
+remove from VersionSpace any hypothesis h for which h(x) # c(x) 
+3. Output the list of hypotheses in VersionSpace 
+TABLE 2.4 
+The LIST-THEN-ELIMINATE algorithm.  {<Sunny, Warm, ?, Strong, 7, ?> 1 
+<Sunny, ?, 7, Strong, 7, ?> <Sunny, Warm, ?. ?, ?, ?> <?, Warm, ?, strbng, ?, ?> 
+FIGURE 2.3 
+A version space with its general and specific boundary sets. The version space includes all six 
+hypotheses shown here, but can be represented more simply by S and G. Arrows indicate instances 
+of the more-general-than relation. This is the version space for the Enjoysport concept learning 
+problem and training examples described in Table 2.1.ì
+models/text-embedding-004Ì
+ÉÆproblem and training examples described in Table 2.1. 
+To illustrate this representation for version spaces, consider again the En- 
+joysport concept learning problem described in Table 2.2. Recall that given the 
+four training examples from Table 2.1, FIND-S outputs the hypothesis 
+h = (Sunny, Warm, ?, Strong, ?, ?) 
+In fact, this is just one of six different hypotheses from H that are consistent 
+with these training examples. All six hypotheses are shown in Figure 2.3. They 
+constitute the version space relative to this set of data and this hypothesis repre- 
+sentation. The arrows among these six hypotheses in Figure 2.3 indicate instances 
+of the more-general~han relation. The CANDIDATE-ELIMINATION algorithm rep- 
+resents the version space by storing only its most general members (labeled G 
+in Figure 2.3) and its most specific (labeled S in the figure). Given only these 
+two sets S and G, it is possible to enumerate all members of the version space 55.5961266234 l 167.0117399999 55.5799895533 l
+167.0284799999 55.5638524832 l 167.0452199999 55.547715413 l 167.0619599999
+55.5315783429 l 167.0786999999 55.5154412728 l 167.0954399999 55.4993042027
+l 167.1121799999 55.4831671325 l 167.1289199999 55.4670300624 l
+167.1456599999 55.4508929923 l 167.1623999999 55.4347559221 l
+167.1791399999 55.418618852 l 167.1958799999 55.4024817819 l 167.2126199999
+55.3863447117 l 167.2293599999 55.3702076416 l 167.2460999999 55.3540705715
+l 167.2628399999 55.3379335014 l 167.2795799999 55.3217964312 l
+167.2963199999 55.3056593611 l 167.3130599999 55.289522291 l 167.3297999999
+55.2733852208 l 167.3465399999 55.2572481507 l 167.3632799999 55.2411110806
+l 167.3800199999 55.2249740105 l 167.3967599999 55.2088369403 l
+167.4134999999 55.1926998702 l 167.4302399999 55.1765628001 l
+167.4469799999 55.1604257299 l 167.4637199999 55.1442886598 l
+167.4804599999 55.1281515897 l 167.4971999999 55.1120145195 l
+167.5139399999 55.0958774494 l 167.5306799999 55.0797403793 l
+167.5474199999 55.0636033092 l 167.5641599999 55.047466239 l 167.5808999999
+55.0313291689 l 167.5976399999 55.0151920988 l 167.6143799999 54.9990550286
+l 167.6311199999 54.9829179585 l 167.6478599999 54.9667808884 l
+167.6645999999 54.9506438182 l 167.6813399999 54.9345067481 l
+167.6980799999 54.918369678 l 167.7148199999 54.9022326079 l 167.7315599999
+54.8860955377 l 167.7482999999 54.8699584676 l 167.7650399999 54.8538213975
+l 167.7817799999 54.8376843273 l 167.7985199999 54.8215472572 l
+167.8152599999 54.8054101871 l 167.8319999999 54.7892731169 l
+167.8487399999 54.7731360468 l 167.8654799999 54.7569989767 l
+167.8822199999 54.7408619066 l 167.8989599999 54.7247248364 l
+167.9156999999 54.7085877663 l 167.9324399999 54.6924506962 l
+167.9491799999 54.676313626 l 167.9659199999 54.6601765559 l 167.9826599999
+54.6440394858 l 167.9993999999 54.6279024156 l 168.0161399999 54.6117653455
+l 168.0328799999 54.5956282754 l 168.0496199999 54.5794912053 l
+168.0663599999 54.5633541351 l 168.0830999999 54.547217065 l 168.0998399999
+54.5310799949 l 168.1165799999 54.5149429247 l 168.1333199999 54.4988058546
+l 168.1500599999 54.4826687845 l 168.1667999999 54.4665317143 l
+168.1835399999 54.4503946442 l 168.2002799999 54.4342575741 l
+168.2170199999 54.418120504 l 168.2337599999 54.4019834338 l 168.2504999999
+54.3858463637 l 168.2672399999 54.3697092936 l 168.2839799999 54.361671626
+l 168.3007199999 54.3573557796 l 168.3174599999 54.3530399333 l
+168.3341999999 54.3487240869 l 168.3509399999 54.3444082406 l
+168.3676799999 54.3400923942 l 168.3844199999 54.3357765479 l
+168.4011599999 54.3314607015 l 168.4178999999 54.3271448552 l
+168.4346399999 54.3228290088 l 168.4513799999 54.3185131625 l
+168.4681199999 54.3141973161 l 168.4848599999 54.3098814698 l
+168.5015999999 54.3055656234 l 168.5183399999 54.3012497771 l
+168.5350799999 54.2969339307 l 168.5518199999 54.2926180844 l
+168.5685599999 54.288302238 l 168.5852999999 54.2839863917 l 168.6020399999
+54.2796705453 l 168.6187799999 54.275354699 l 168.6355199999 54.2710388526
+l 168.6522599999 54.2667230063 l 168.6689999999 54.26240716 l
+168.6857399999 54.2580913136 l 168.7024799999 54.2537754673 l
+168.7192199999 54.2494596209 l 168.7359599999 54.2451437746 l
+168.7526999999 54.2408279282 l 168.7694399999 54.2365120819 l
+168.7861799999 54.2321962355 l 168.8029199999 54.2278803892 l
+168.8196599999 54.2235645428 l 168.8363999999 54.2192486965 l
+168.8531399999 54.2149328501 l 168.8698799999 54.2106170038 l
+168.8866199999 54.2063011574 l 168.9033599999 54.2019853111 l
+168.9200999999 54.1976694647 l 168.9368399999 54.1933536184 l
+168.9535799999 54.189037772 l 168.9703199999 54.1847219257 l 168.9870599999
+54.1804060793 l 169.0037999999 54.176090233 l 169.0205399999 54.1717743866
+l 169.0372799999 54.1674585403 l 169.0540199999 54.1631426939 l
+169.0707599999 54.1588268476 l 169.0874999999 54.1545110013 l
+169.1042399999 54.1501951549 l 169.1209799999 54.1458793086 l
+169.1377199999 54.1415634622 l 169.1544599999 54.1372476159 l
+169.1711999999 54.1329317695 l 169.1879399999 54.1286159232 l
+169.2046799999 54.1243000768 l 169.2214199999 54.1199842305 l
+169.2381599999 54.1156683841 l 169.2548999999 54.1113525378 l
+169.2716399999 54.1070366914 l 169.2883799999 54.1027208451 l
+169.3051199999 54.0984049987 l 169.3218599999 54.0940891524 l
+169.3385999999 54.089773306 l 169.3553399999 54.0854574597 l 169.3720799999
+54.0811416133 l 169.3888199999 54.076825767 l 169.4055599999 54.0725099206
+l 169.4222999999 54.0681940743 l 169.4390399999 54.0638782279 l
+169.4557799999 54.0595623816 l 169.4725199999 54.0552465352 l
+169.4892599999 54.0509306889 l 169.5059999999 54.0466148425 l
+169.5227399999 54.0422989962 l 169.5394799999 54.0379831499 l
+169.5562199999 54.0336673035 l 169.5729599999 54.0293514572 l
+169.5896999999 54.0250356108 l 169.6064399999 54.0207197645 l
+169.6231799999 54.0164039181 l 169.6399199999 54.0120880718 l
+169.6566599999 54.0077722254 l 169.6733999999 54.0034563791 l
+169.6901399999 53.9991405327 l 169.7068799999 53.9948246864 l
+169.7236199999 53.99050884 l 169.7403599999 53.9861929937 l 169.7570999999
+53.9818771473 l 169.7738399999 53.977561301 l 169.7905799999 53.9732454546
+l 169.8073199999 53.9689296083 l 169.8240599999 53.9646137619 l
+169.8407999999 53.9602979156 l 169.8575399999 53.9559820692 l
+169.8742799999 53.9516662229 l 169.8910199999 53.9473503765 l
+169.9077599999 53.9430345302 l 169.9244999999 53.9387186838 l
+169.9412399999 53.9344028375 l 169.9579799999 53.9300869912 l
+169.9747199999 53.9257711448 l 169.9914599999 53.9214552985 l
+170.0081999999 53.9171394521 l 170.0249399999 53.9128236058 l
+170.0416799999 53.9085077594 l 170.0584199999 53.9041919131 l
+170.0751599999 53.8998760667 l 170.0918999999 53.8955602204 l
+170.1086399999 53.891244374 l 170.1253799999 53.8869285277 l 170.1421199999
+53.88261268
