@@ -45,32 +45,29 @@ This approach is ideal for applications requiring domain-specific knowledge, suc
 ## **🏗️ Project Architecture**
 
 The application is divided into two main components: a backend server that handles the AI logic and a frontend client for user interaction, orchestrated by Docker Compose.  
-\+--------------------------------+      \+--------------------------------+  
-|      Frontend (Next.js)        |      |       Backend (FastAPI)        |  
-|--------------------------------|      |--------------------------------|  
-| \- User Interface (Chat Window) |      | \- API Endpoint (/chat)         |  
-| \- State Management (React)     |      | \- RAG Pipeline                 |  
-| \- API Calls to Backend         |      | \- PDF Processing & Chunking    |  
-\+--------------------------------+      \+--------------------------------+  
-             |                                          ^  
-             | HTTP Request (User Query)                |  
-             v                                          |  
-\+--------------------------------+                      |  
-|       API Server (Uvicorn)     |      \+--------------------------------+  
-|--------------------------------|      |   Vector Database (ChromaDB)   |  
-| \- Listens for requests         | \<---\>|--------------------------------|  
-| \- Passes to FastAPI            |      | \- Stores Document Embeddings   |  
-\+--------------------------------+      | \- Performs Similarity Search   |  
-                                        \+--------------------------------+  
-                                                       ^  
-                                                       | (Embeddings & Prompts)  
-                                                       v  
-                                        \+--------------------------------+  
-                                        |    Google AI Platform (API)    |  
-                                        |--------------------------------|  
-                                        | \- Gemini 1.5 Pro (Generation)  |  
-                                        | \- text-embedding-004 (Embed)   |  
-                                        \+--------------------------------+
++----------------------------+        +-----------------------------+
+|     Frontend (Next.js)     |        |       Backend (FastAPI)     |
+|----------------------------|        |-----------------------------|
+| - Chat UI (React + TS)     |        | - /chat API endpoint        |
+| - Calls backend API        | <----> | - RAG pipeline              |
++----------------------------+        | - PDF processing & chunking |
+                                      +-------------+---------------+
+                                                    |
+                                                    v
+                                     +-----------------------------+
+                                     |  Vector DB (ChromaDB)       |
+                                     |-----------------------------|
+                                     | - Stores embeddings         |
+                                     | - Similarity search         |
+                                     +-------------+---------------+
+                                                   |
+                                                   v
+                                     +-----------------------------+
+                                     |    Google AI Platform       |
+                                     |-----------------------------|
+                                     | - Gemini 1.5 Pro (LLM)      |
+                                     | - text-embedding-004        |
+                                     +-----------------------------+
 
 **Workflow:**
 
